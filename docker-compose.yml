@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+
+  fastapi:
+    build: .
+    container_name: fastapi_app
+    ports:
+      - "7070:7070"
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq/
+    volumes:
+      - app:/home/sanchay/test/kul
+    depends_on:
+      - rabbitmq
+
+  scheduler:
+    build: .
+    container_name: worker
+    command: ["python", "scheduler/worker.py"]
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq/
+
+volumes:
+  app:
